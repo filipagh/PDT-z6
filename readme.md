@@ -1,6 +1,6 @@
 ### autor: Filip Agh
 
-### git:
+### git: [link](https://github.com/filipagh/PDT-z6)
 
 # uloha 1
 
