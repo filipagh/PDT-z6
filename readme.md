@@ -10,23 +10,29 @@ vid docker compose
 
 # uloha 2
 
-`match (a:Account)<-[f:FOLLOWS]-(t:Account)  return a.name, count(f) as followerCount order by followerCount desc limit 5
-`
+```
+match (a:Account)<-[f:FOLLOWS]-(t:Account) 
+where a<>t 
+return a.name, count(f) as followerCount 
+order by followerCount desc 
+limit 5
+```
 
 | name             | followerCount |
 |-------------------|---------------|
 | Barack Obama      | 12725         |
-| KATY PERRY        | 11462         |
+| KATY PERRY        | 11461         |
 | Donald J. Trump   | 6735          |
 | Kim Kardashian West | 6680          |
 | Narendra Modi     | 6425          |
 
 # uloha 3
 
-`MATCH (start:Account{screen_name: "KimKardashian"}), (end:Account{screen_name: "katyperry"})
+```
+MATCH (start:Account{screen_name: "KimKardashian"}), (end:Account{screen_name: "katyperry"})
 MATCH p=allShortestPaths((start)-[*]->(end))
 RETURN p
-`
+```
 
 <details>
   <summary>result</summary>
@@ -200,7 +206,17 @@ RETURN p
 ![img.png](img.png)
 
 # uloha 4
-`call{match x=(a:Account)-[p:POSTS]->(pt:Tweet)<-[r:RETWEETS]-(t:Tweet) return a, count(r) as c order by c desc limit 10} match (a)-[p:POSTS]->(pt:Tweet)<-[rr:RETWEETS]-(t:Tweet) return pt,a, count(rr) order by count(rr) limit 10`
+
+```
+call
+{
+    match x=(a:Account)-[p:POSTS]->(pt:Tweet)<-[r:RETWEETS]-(t:Tweet) 
+    return a, count(r) as c order by c desc limit 10
+} 
+   match (a)-[p:POSTS]->(pt:Tweet)<-[rr:RETWEETS]-(t:Tweet) 
+   return pt,a, count(rr) order by count(rr) 
+   limit 10
+```
 <details>
   <summary>result</summary>
 
@@ -226,13 +242,23 @@ RETURN p
 ![img_1.png](img_1.png)
 
 # uloha 5
-`match (a:Account{screen_name:"realDonaldTrump"})-[p:POSTS]->(pt:Tweet)<-[r:RETWEETS]-(t:Tweet) with a, pt, count(r) as count order by count desc limit 1 create (myacc:Account{name: "Filip Agh", screen_name: "Filip Agh", id: "000000"})-[:FOLLOWS]->(a), (myacc)-[:POSTS]->(mytweet:Tweet)-[:RETWEETS]->(pt)  return pt, mytweet, a, myacc`
+```
+match (a:Account{screen_name:"realDonaldTrump"})-[p:POSTS]->(pt:Tweet)<-[r:RETWEETS]-(t:Tweet) 
+with a, pt, count(r) as count order by count desc 
+limit 1 
+create (myacc:Account{name: "Filip Agh", screen_name: "Filip Agh", id: "000000"})-[:FOLLOWS]->(a), 
+(myacc)-[:POSTS]->(mytweet:Tweet)-[:RETWEETS]->(pt)  
+return pt, mytweet, a, myacc
+```
 ![img_2.png](img_2.png)
 
 # uloha 6
-`
-match x=(main:Account{screen_name: "777stl"})-[:FOLLOWS]->(af:Account)<-[fc:FOLLOWS]-(tf:Account) where tf<>af  return  tf ,count(fc) order by count(fc) desc limit 10
-`
+```
+match x=(main:Account{screen_name: "777stl"})-[:FOLLOWS]->(af:Account)<-[fc:FOLLOWS]-(tf:Account) 
+where tf<>af  
+return  tf ,count(fc) order by count(fc) desc 
+limit 10
+```
 <details>
   <summary>result</summary>
 
@@ -425,7 +451,12 @@ We will not be silenced.",
 ![img_3.png](img_3.png)
 # uloha 7 
 
-`match x=(af:Account)<-[:FOLLOWS]-(dw:Account{screen_name: "DaynerWilson"})-[:POSTS]-(:Tweet)-[:RETWEETS*]-(:Tweet)<-[ct:RETWEETS]-(:Tweet)<-[:POSTS]-(tf:Account) where af <> tf return  tf, count(ct) order by count(ct) desc limit 10`
+```
+match x=(af:Account)<-[:FOLLOWS]-(dw:Account{screen_name: "DaynerWilson"})-[:POSTS]-(:Tweet)-[:RETWEETS*]-(:Tweet)<-[ct:RETWEETS]-(:Tweet)<-[:POSTS]-(tf:Account) 
+where af <> tf 
+return  tf, count(ct) order by count(ct) desc 
+limit 10
+```
 <details>
   <summary>result</summary>
 
@@ -566,7 +597,7 @@ https://t.co/2ScZqTGWgG",
 ![img_4.png](img_4.png)
 
 # uloha 8
-povodne query 
+povodna query 
 ```
 match (a:Account)-[:POSTS]->(t:Tweet{id: '1289380305728503808'}) 
 optional match z=(la:Account)-[:FOLLOWS*..5]->(a:Account) 
@@ -575,6 +606,15 @@ with lf,t,apoc.text.split(t.content, ' ') as tcont
 where not (lf)-[:RETWEETS]-(t) RETURN lf, size(apoc.coll.intersection(apoc.text.split(lf.content, ' '),tcont)) as words 
 order by words desc limit 5
 ```
+
+| tweet.id            |words|
+|---------------------|-----|
+| 1289389448224862211 |6    |
+| 1289392408753401865 |6    |
+| 1289432076274425856 |5    |
+| 1289432628681011200 |5    |
+| 1289440580372541440 |5    |
+
 
 obohatene o toLower a odstranenie stopwords (dufam v bonusovy bodik :) )
 
@@ -610,9 +650,10 @@ MATCH p=allShortestPaths((start)-[:POSTS|RETWEETS*]-(end))
 RETURN p
 `
 
-query na vbytvorenie temp hran ktore vyhovuju chain relationship
+query na vytvorenie temp hran ktore vyhovuju chain relationshipu
 `
-match x=(start:Account)-[:POSTS]-(:Tweet)-[:RETWEETS]->(tt:Tweet)-[:POSTS]-(end:Account) 
+match x=(start:Account)-[:POSTS]-(:Tweet)-[:RETWEETS]->(tt:Tweet)-[:POSTS]-(end:Account)
+where start<>end
 merge (start)-[:TEMP]->(end) 
 return x limit 10
 `
